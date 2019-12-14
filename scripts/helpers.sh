@@ -13,24 +13,32 @@ GetTmuxOption() {
     fi
 }
 
-# separator format builder
-SepFormatBuilder() {
+# separator format picker
+SepFormatPicker() {
     local -a in_sep_format_list=("${!1}")
     local sep_dir=$2
-    sep_format_builder_list=('' '')
+    sep_format_picker_list=('' '')
 
     case ${sep_dir} in
         left* )
-            sep_format_builder_list[0]="${in_sep_format_list[0]}${in_sep_format_list[2]}"
+            sep_format_picker_list[0]="${in_sep_format_list[0]}${in_sep_format_list[2]}"
         ;;&
         right* )
-            sep_format_builder_list[0]="${in_sep_format_list[1]}${in_sep_format_list[3]}"
+            sep_format_picker_list[0]="${in_sep_format_list[1]}${in_sep_format_list[3]}"
         ;;&
         *left )
-            sep_format_builder_list[1]="${in_sep_format_list[1]}${in_sep_format_list[2]}"
+            sep_format_picker_list[1]="${in_sep_format_list[1]}${in_sep_format_list[2]}"
         ;;&
         *right )
-            sep_format_builder_list[1]="${in_sep_format_list[0]}${in_sep_format_list[3]}"
+            sep_format_picker_list[1]="${in_sep_format_list[0]}${in_sep_format_list[3]}"
         ;;
     esac
+}
+
+# tmux style string parser
+StyleParser() {
+    local style=$(GetTmuxOption "$1")
+    fg=$(echo ${style} | sed -rn 's/^.*fg=(#?[^ ,#]+).*$/\1/p')
+    bg=$(echo ${style} | sed -rn 's/^.*bg=(#?[^ ,#]+).*$/\1/p')
+    attr=$(echo ${style} | sed -r 's/([fb]g=#?[^ ,#]+)//g')
 }

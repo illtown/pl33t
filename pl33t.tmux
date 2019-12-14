@@ -19,6 +19,14 @@ SanityCheck() {
         tmux display "$(basename $0): Tmux version 3+ needed"
         exit 1
     fi
+    # utils check
+    local util
+    for util in sed; do
+        if ! hash ${util} &>/dev/null; then
+            tmux display "$(basename $0): ${util} utility needed"
+            exit 1
+        fi
+    done
 }
 
 # apply theme in stages
@@ -27,6 +35,7 @@ ApplyTheme() {
     PaneModding
 
     # status lines modifications
+    pl33t_status_lines=$(GetTmuxOption @pl33t-status-lines)
     if [[ ${pl33t_status_lines} =~ ^[2-5]$ ]]; then
         for (( i=0; i<${pl33t_status_lines}; i++ )); do
             StatusLineModding $i
@@ -38,7 +47,7 @@ ApplyTheme() {
 
 # feature scripts
 Features() {
-    local features_list=(wttr publicip testfunc)
+    local features_list=(wttr publicip)
     local feature
 
     for feature in ${features_list[@]}; do
@@ -56,30 +65,30 @@ Features() {
 # pane modifications
 PaneModding() {
     # pane border format
-    case $(GetTmuxOption pane-border-status) in
-        'top'|'bottom' )
-            local sep_shape=$(GetTmuxOption @pl33t-pane-border-sep-shape)
-            local pane_border_format
+    local pane_separator=$(GetTmuxOption @pl33t-pane-border-separator)
+    local pane_active_separator=$(GetTmuxOption @pl33t-pane-active-border-separator)
+    local pane_border_format=''
 
-            eval pane_border_format+="#{?pane_marked,#[reverse]\${pl33t_pl_${sep_shape}_left_opaque}#[noreverse],}" # marked pane
-            pane_border_format+='#{?pane_active,'
-            # active pane border
-            pane_border_format+="#[#{E:@pl33t-pane-active-border-style}]" # WA for 'align' not being inherited
-            eval pane_border_format+="\${pl33t_pl_${sep_shape}_left_opaque}"
-            pane_border_format+="#[reverse]#{T:@pl33t-pane-active-border-content}#[noreverse]"
-            eval pane_border_format+="\${pl33t_pl_${sep_shape}_right_opaque}"
-            pane_border_format+=","
-            # normal pane border
-            pane_border_format+="#[#{E:@pl33t-pane-border-style}]" # WA for 'align' not being inherited
-            eval pane_border_format+="\${pl33t_pl_${sep_shape}_left_clear}"
-            pane_border_format+="#{T:@pl33t-pane-border-content}"
-            eval pane_border_format+="\${pl33t_pl_${sep_shape}_right_clear}"
-            pane_border_format+="}"
-            eval pane_border_format+="#{?pane_marked,#[default#,align=right#,reverse]\${pl33t_pl_${sep_shape}_right_opaque}#[noreverse],}"
-            # set pane border format
-            tmux set -g pane-border-format "${pane_border_format}"
-        ;;
-    esac
+    # pane border format builder
+    pane_border_format+='#{?pane_active,'
+    # active pane border
+    eval pane_border_format+="#{?pane_marked,#[reverse]\${pl33t_pl_${pane_active_separator}_left_opaque}#[noreverse],}" # marked
+    pane_border_format+="#[#{E:@pl33t-pane-active-border-style}]" # WA for 'align' not being inherited
+    eval pane_border_format+="\${pl33t_pl_${pane_active_separator}_left_opaque}" # left separator
+    pane_border_format+="#[reverse]#{T:@pl33t-pane-active-border-content}#[noreverse]" # content
+    eval pane_border_format+="\${pl33t_pl_${pane_active_separator}_right_opaque}" # right separator
+    eval pane_border_format+="#{?pane_marked,#[default#,align=right#,reverse]\${pl33t_pl_${pane_active_separator}_right_opaque}#[noreverse],}" # marked
+    pane_border_format+=","
+    # normal pane border
+    eval pane_border_format+="#{?pane_marked,#[reverse]\${pl33t_pl_${pane_separator}_left_opaque}#[noreverse],}" # marked
+    pane_border_format+="#[#{E:@pl33t-pane-border-style}]" # WA for 'align' not being inherited
+    eval pane_border_format+="\${pl33t_pl_${pane_separator}_left_clear}" # left separator
+    pane_border_format+="#{T:@pl33t-pane-border-content}" # content
+    eval pane_border_format+="\${pl33t_pl_${pane_separator}_right_clear}" # right separator
+    eval pane_border_format+="#{?pane_marked,#[default#,align=right#,reverse]\${pl33t_pl_${pane_separator}_right_opaque}#[noreverse],}" # marked
+    pane_border_format+="}"
+    # set pane border format
+    tmux set -g pane-border-format "${pane_border_format}"
 }
 
 # status line modifications
@@ -97,12 +106,6 @@ StatusLineModding() {
 
     local side
     for side in 'left' 'centre' 'right'; do
-        # check if window status segment should go to this side
-        if [[ ${line_ndx} -eq 0 && "$(GetTmuxOption '@pl33t-window-status-position')" == "${side}" ]]; then
-            tmux set -g @pl33t-status-${side}-format '#{T:@pl33t-window-status-format}'
-            WindowStatusModding
-            continue
-        fi
         # set status side format
         local status_side_format=''
         StatusSideBuilder
@@ -114,117 +117,125 @@ StatusLineModding() {
 StatusSideBuilder() {
     # status side segments parser
     IFS=,
-    local side_content_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-content))
-    local side_fg_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-fg))
-    local side_bg_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-bg))
-    local side_attr_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-attr))
-    local side_sep_dir_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-sep-dir))
-    local side_sep_shape_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-sep-shape))
+    local side_segments_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-segments))
     unset IFS
 
     # status side format header
-    status_side_format+="#[align=${side}#,range=${side}]"
+    status_side_format+="#[align=${side}]"
 
     # status side segment builder
-    local i
-    for (( i=0; i<${#side_content_list[@]}; i++ )); do
-        # skip drawing empty segment
-        [[ -z ${side_content_list[$i]} ]] && continue
+    local segment
+    for segment in ${side_segments_list[@]}; do
         local segment_format=''
-        StatusSegmentBuilder
-        status_side_format+="${segment_format}"
+        if [[ ${segment} == 'winstatus' ]]; then
+            WindowStatusModding
+            status_side_format+='#{T:@pl33t-window-status-format}'
+        else
+            StatusSegmentBuilder
+            status_side_format+="${segment_format}"
+        fi
     done
 
     # status side format footer
-    status_side_format+='#[norange#,default]'
+    status_side_format+='#[default]'
 }
 
 # status line side segment builder
 StatusSegmentBuilder() {
-    # get current segment style ...
-    local segment_fg="${side_fg_list[$i]:-#{E:@pl33t-status-fg\}}"
-    local segment_bg="${side_bg_list[$i]:-#{E:@pl33t-status-bg\}}"
-    local segment_attr="${side_attr_list[$i]}"
+    # get current segment's style, ...
+    StyleParser @pl33t-status-segment-${segment}-style
+    local segment_fg="${fg:-#{E:@pl33t-status-fg\}}"
+    local segment_bg="${bg:-#{E:@pl33t-status-bg\}}"
+    local segment_attr="${attr}"
+    # ... content
+    local segment_content=$(GetTmuxOption @pl33t-status-segment-${segment}-content)
     # ... and separator
-    local segment_sep_dir="${side_sep_dir_list[$i]}"
-    local segment_sep_shape="${side_sep_shape_list[$i]:-triangle}"
+    IFS=,
+    local segment_separator=($(GetTmuxOption @pl33t-status-segment-${segment}-separator))
+    unset IFS
 
     # segment separators
     local -a segment_sep_format_list
     segment_sep_format_list[0]="#[fg=${segment_bg}#,bg=#{@pl33t-status-bg}#,${segment_attr}#,none]"
     segment_sep_format_list[1]="#[fg=#{@pl33t-status-bg}#,bg=${segment_bg}#,${segment_attr}#,none]"
-    eval segment_sep_format_list[2]="\${pl33t_pl_${segment_sep_shape}_left_opaque}"
-    eval segment_sep_format_list[3]="\${pl33t_pl_${segment_sep_shape}_right_opaque}"
+    eval segment_sep_format_list[2]="\${pl33t_pl_${segment_separator[1]}_left_opaque}"
+    eval segment_sep_format_list[3]="\${pl33t_pl_${segment_separator[1]}_right_opaque}"
 
-    SepFormatBuilder segment_sep_format_list[@] "${segment_sep_dir}"
-    local segment_sep_left_format="${sep_format_builder_list[0]}"
-    local segment_sep_right_format="${sep_format_builder_list[1]}"
+    SepFormatPicker segment_sep_format_list[@] "${segment_separator[0]}"
+    local segment_sep_left_format="${sep_format_picker_list[0]}"
+    local segment_sep_right_format="${sep_format_picker_list[1]}"
 
     # segment format builder
-    segment_format+="${segment_sep_left_format}"
-    segment_format+="#[fg=${segment_fg}#,bg=${segment_bg}#,${segment_attr}]"
-    segment_format+="${side_content_list[$i]}"
-    segment_format+="${segment_sep_right_format}"
+    segment_format+="${segment_sep_left_format}" # left separator
+    segment_format+="#[#{E:@pl33t-status-segment-${segment}-style}]" # style
+    segment_format+="${segment_content}" # content
+    segment_format+="${segment_sep_right_format}" # right separator
 }
 
 # window status modifications
 WindowStatusModding() {
     # settings parser
-    local win_sep_shape=$(GetTmuxOption @pl33t-window-status-sep-shape)
     IFS=,
-    local win_sep_dir_list=($(GetTmuxOption @pl33t-window-status-sep-dir))
+    local win_separator=($(GetTmuxOption @pl33t-window-status-separator))
+    local win_cur_separator=($(GetTmuxOption @pl33t-window-status-current-separator))
     unset IFS
-    local win_cur_sep_shape=$(GetTmuxOption @pl33t-window-status-current-sep-shape)
-    local win_cur_sep_dir=$(GetTmuxOption @pl33t-window-status-current-sep-dir)
+
+    # window status styles builder
+    for style_name in '' 'current' 'activity' 'bell' 'last' 'silence'; do
+        StyleParser @pl33t-window-status${style_name:+-}${style_name}-style
+        eval local win_status${style_name:+_}${style_name}_bg=${bg}
+        eval local win_status${style_name:+_}${style_name}_attr=${attr}
+    done
+    unset style_name
 
     # normal windows separators
     local -a win_sep_format_list
-    win_sep_format_list[0]='#[fg=#{E:@pl33t-window-status-bg}#,bg=#{E:@pl33t-status-bg}#,#{E:@pl33t-window-status-attr}#,none]'
-    win_sep_format_list[0]+='#{?#{window_last_flag},#[fg=#{E:@pl33t-window-status-last-bg}],}'
-    win_sep_format_list[0]+='#{?#{window_bell_flag},#[fg=#{E:@pl33t-window-status-bell-bg}],}'
-    win_sep_format_list[0]+='#{?#{window_activity_flag},#[fg=#{E:@pl33t-window-status-activity-bg}],}'
-    win_sep_format_list[0]+='#{?#{window_silence_flag},#[fg=#{E:@pl33t-window-status-silence-bg}],}'
+    win_sep_format_list[0]="#[fg=${win_status_bg}#,bg=#{E:@pl33t-status-bg}#,${win_status_attr}#,none]"
+    win_sep_format_list[0]+="#{?#{window_last_flag},#[fg=${win_status_last_bg}],}"
+    win_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
+    win_sep_format_list[0]+="#{?#{window_activity_flag},#[fg=${win_status_activity_bg}],}"
+    win_sep_format_list[0]+="#{?#{window_silence_flag},#[fg=${win_status_silence_bg}],}"
 
-    win_sep_format_list[1]='#[fg=#{E:@pl33t-status-bg}#,bg=#{E:@pl33t-window-status-bg}#,#{E:@pl33t-window-status-attr}#,none]'
-    win_sep_format_list[1]+='#{?#{window_last_flag},#[bg=#{E:@pl33t-window-status-last-bg}],}'
-    win_sep_format_list[1]+='#{?#{window_bell_flag},#[bg=#{E:@pl33t-window-status-bell-bg}],}'
-    win_sep_format_list[1]+='#{?#{window_activity_flag},#[bg=#{E:@pl33t-window-status-activity-bg}],}'
-    win_sep_format_list[1]+='#{?#{window_silence_flag},#[bg=#{E:@pl33t-window-status-silence-bg}],}'
+    win_sep_format_list[1]="#[bg=${win_status_bg}#,fg=#{E:@pl33t-status-bg}#,${win_status_attr}#,none]"
+    win_sep_format_list[1]+="#{?#{window_last_flag},#[bg=${win_status_last_bg}],}"
+    win_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
+    win_sep_format_list[1]+="#{?#{window_activity_flag},#[bg=${win_status_activity_bg}],}"
+    win_sep_format_list[1]+="#{?#{window_silence_flag},#[bg=${win_status_silence_bg}],}"
 
-    eval win_sep_format_list[2]="\${pl33t_pl_${win_sep_shape}_left_opaque}"
-    eval win_sep_format_list[3]="\${pl33t_pl_${win_sep_shape}_right_opaque}"
+    eval win_sep_format_list[2]="\${pl33t_pl_${win_separator[2]}_left_opaque}"
+    eval win_sep_format_list[3]="\${pl33t_pl_${win_separator[2]}_right_opaque}"
 
     local i side_list=(left right)
     for i in 0 1; do
-        SepFormatBuilder win_sep_format_list[@] "${win_sep_dir_list[$i]}"
-        eval local win_${side_list[$i]}_sep_left_format="\${sep_format_builder_list[0]}"
-        eval local win_${side_list[$i]}_sep_right_format="\${sep_format_builder_list[1]}"
+        SepFormatPicker win_sep_format_list[@] "${win_separator[$i]}"
+        eval local win_${side_list[$i]}_sep_left_format="\${sep_format_picker_list[0]}"
+        eval local win_${side_list[$i]}_sep_right_format="\${sep_format_picker_list[1]}"
     done
 
     # current window separators
     local -a win_cur_sep_format_list
-    win_cur_sep_format_list[0]='#[fg=#{E:@pl33t-window-status-current-bg}#,bg=#{E:@pl33t-status-bg}#,#{E:@pl33t-window-status-current-attr}#,none]'
-    win_cur_sep_format_list[0]+='#{?#{window_bell_flag},#[fg=#{E:@pl33t-window-status-bell-bg}],}'
-    win_cur_sep_format_list[0]+='#{?#{window_activity_flag},#[fg=#{E:@pl33t-window-status-activity-bg}],}'
-    win_cur_sep_format_list[0]+='#{?#{window_silence_flag},#[fg=#{E:@pl33t-window-status-silence-bg}],}'
+    win_cur_sep_format_list[0]="#[fg=${win_status_current_bg}#,bg=#{E:@pl33t-status-bg}#,${win_status_current_attr}#,none]"
+    win_cur_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
+    win_cur_sep_format_list[0]+="#{?#{window_activity_flag},#[fg=${win_status_activity_bg}],}"
+    win_cur_sep_format_list[0]+="#{?#{window_silence_flag},#[fg=${win_status_silence_bg}],}"
 
-    win_cur_sep_format_list[1]='#[fg=#{E:@pl33t-status-bg}#,bg=#{E:@pl33t-window-status-current-bg}#,#{E:@pl33t-window-status-current-attr}#,none]'
-    win_cur_sep_format_list[1]+='#{?#{window_bell_flag},#[bg=#{E:@pl33t-window-status-bell-bg}],}'
-    win_cur_sep_format_list[1]+='#{?#{window_activity_flag},#[bg=#{E:@pl33t-window-status-activity-bg}],}'
-    win_cur_sep_format_list[1]+='#{?#{window_silence_flag},#[bg=#{E:@pl33t-window-status-silence-bg}],}'
+    win_cur_sep_format_list[1]="#[bg=${win_status_current_bg}#,fg=#{E:@pl33t-status-bg}#,${win_status_current_attr}#,none]"
+    win_cur_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
+    win_cur_sep_format_list[1]+="#{?#{window_activity_flag},#[bg=${win_status_activity_bg}],}"
+    win_cur_sep_format_list[1]+="#{?#{window_silence_flag},#[bg=${win_status_silence_bg}],}"
 
-    eval win_cur_sep_format_list[2]="\${pl33t_pl_${win_cur_sep_shape}_left_opaque}"
-    eval win_cur_sep_format_list[3]="\${pl33t_pl_${win_cur_sep_shape}_right_opaque}"
+    eval win_cur_sep_format_list[2]="\${pl33t_pl_${win_cur_separator[1]}_left_opaque}"
+    eval win_cur_sep_format_list[3]="\${pl33t_pl_${win_cur_separator[1]}_right_opaque}"
 
-    SepFormatBuilder win_cur_sep_format_list[@] "${win_cur_sep_dir}"
-    local win_cur_sep_left_format="${sep_format_builder_list[0]}"
-    local win_cur_sep_right_format="${sep_format_builder_list[1]}"
+    SepFormatPicker win_cur_sep_format_list[@] "${win_cur_separator[0]}"
+    local win_cur_sep_left_format="${sep_format_picker_list[0]}"
+    local win_cur_sep_right_format="${sep_format_picker_list[1]}"
 
     # window status format builder
     local window_status_format=''
 
     # window status header
-    window_status_format+="#[align=#{@pl33t-window-status-position}]"
+    window_status_format+="#[align=${side}]"
     # window status body
     window_status_format+="#{W:#[range=window|#{window_index}]"
     # normal windows

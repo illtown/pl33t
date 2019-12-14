@@ -5,23 +5,23 @@
 
 # orchestrator
 main() {
-    shell_func_name="$1"    # shell function name to run
-    func_freq=$2            # shell function invocation frequency
+    fn_name=$1      # shell function name to run
+    fn_freq=$2      # shell function invocation frequency
     # get the function arguments
     shift 2
-    arguments="$@"
+    fn_opts="$@"    # function options if any
 
     # tmux var name to store shell function result data
-    tmux_var="@pl33t-features-${shell_func_name}-output"
+    tmux_var="@pl33t-features-${fn_name}-output"
     # get frequency of this script invocations
     self_freq=$(tmux display -p '#{status-interval}')
 
     # absolute time
     abs_time=$(date +%s)
-    # run shell func if it's time or the first time
-    if [[ $(( ${abs_time} % ${func_freq} )) -lt ${self_freq} ]] ||
+    # run shell function if it's time or the first time
+    if [[ $(( ${abs_time} % ${fn_freq} )) -lt ${self_freq} ]] ||
        [[ -z $(tmux display -p "#{${tmux_var}}") ]]; then
-        ${shell_func_name} "${arguments}"
+        ${fn_name} "${fn_opts}"
     fi
     echo "#{${tmux_var}}"
 }
@@ -58,12 +58,6 @@ publicip() {
         [[ -n ${result} ]] && break
     done
 
-    tmux set ${tmux_var} "${result}"
-}
-
-# test function
-testfunc() {
-    local result=$(date)
     tmux set ${tmux_var} "${result}"
 }
 
