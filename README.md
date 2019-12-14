@@ -9,7 +9,7 @@ Add plugin to the list of TPM plugins in `.tmux.conf`:
 
 Hit `prefix + I` to fetch the plugin and source it.
 
-### Manual
+### manual
 
 Clone the repo:
 
@@ -24,10 +24,13 @@ Reload TMUX environment:
     # type this in terminal
     $ tmux source-file ~/.tmux.conf
 
-### Dependencies
+## Dependencies
 
 To run this theme you need:
 
 * sed utility
 * tmux version 3+
 * powerline enabled fonts ([nerdfonts](https://www.nerdfonts.com) recommended)
+
+## Customization
+Default theme settings are located in [variables.sh](scripts/variables.sh) file. You may override them in your `tmux.conf`.
