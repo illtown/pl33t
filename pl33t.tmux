@@ -239,14 +239,14 @@ WindowStatusModding() {
     # window status body
     window_status_format+="#{W:#[range=window|#{window_index}]"
     # normal windows
-    window_status_format+="#{?#{<:#I,#{W:,#I}},${win_left_sep_left_format},${win_right_sep_left_format}}" # left separator
+    window_status_format+="#{?#{m/r:#I ([0-9]+ )*A,#{W:#I ,A }},${win_left_sep_left_format},${win_right_sep_left_format}}" # left separator
     window_status_format+="#[#{E:@pl33t-window-status-style}]" # default style
     window_status_format+="#{?#{window_last_flag},#[#{E:@pl33t-window-status-last-style}],}" # last style
     window_status_format+="#{?#{window_bell_flag},#[#{E:@pl33t-window-status-bell-style}],}" # bell style
     window_status_format+="#{?#{window_activity_flag},#[#{E:@pl33t-window-status-activity-style}],}" # activity style
     window_status_format+="#{?#{window_silence_flag},#[#{E:@pl33t-window-status-silence-style}],}" # silence style
     window_status_format+="#{T:@pl33t-window-status-content}" # content
-    window_status_format+="#{?#{<:#I,#{W:,#I}},${win_left_sep_right_format},${win_right_sep_right_format}}" # right separator
+    window_status_format+="#{?#{m/r:#I ([0-9]+ )*A,#{W:#I ,A }},${win_left_sep_right_format},${win_right_sep_right_format}}" # right separator
     window_status_format+="#[norange#,default],"
     # current window
     window_status_format+="#[range=window|#{window_index}]"
