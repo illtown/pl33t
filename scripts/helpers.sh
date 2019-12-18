@@ -37,8 +37,14 @@ SepFormatPicker() {
 
 # tmux style string parser
 StyleParser() {
-    local style=$(GetTmuxOption "$1")
-    fg=$(echo ${style} | sed -rn 's/^.*fg=(#?[^ ,#]+).*$/\1/p')
-    bg=$(echo ${style} | sed -rn 's/^.*bg=(#?[^ ,#]+).*$/\1/p')
-    attr=$(echo ${style} | sed -r 's/([fb]g=#?[^ ,#]+)//g')
+    local style="$(GetTmuxOption $1)"
+    local i
+    for i in $(echo ${style} | sed -E 's/,+/ /g'); do
+        case $i in
+            [bf]g=* )
+                eval $i ;;
+            * )
+                attr+="$i#," ;;
+        esac
+    done
 }

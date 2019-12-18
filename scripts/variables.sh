@@ -55,23 +55,23 @@ tmux set -go @pl33t-status-lines '1'
 # host segment
 tmux set -go @pl33t-status-segment-host-content "  #{host_short} "
 tmux set -go @pl33t-status-segment-host-separator "-right,triangle"
-tmux set -go @pl33t-status-segment-host-style "fg=black#,bg=#{@pl33t-accent-color}"
+tmux set -go @pl33t-status-segment-host-style "fg=black,bg=#{@pl33t-accent-color}"
 # session segment
 tmux set -go @pl33t-status-segment-session-content " #{session_name} "
 tmux set -go @pl33t-status-segment-session-separator "right,triangle"
-tmux set -go @pl33t-status-segment-session-style "fg=black#,bg=yellow"
+tmux set -go @pl33t-status-segment-session-style "fg=black,bg=yellow"
 # window segment
 tmux set -go @pl33t-status-segment-window-content "  #{window_name} "
 tmux set -go @pl33t-status-segment-window-separator "right,triangle"
-tmux set -go @pl33t-status-segment-window-style  "fg=black#,bg=white"
+tmux set -go @pl33t-status-segment-window-style  "fg=black,bg=white"
 # time segment
 tmux set -go @pl33t-status-segment-time-content "  %H:%M:%S "
 tmux set -go @pl33t-status-segment-time-separator "left,triangle"
-tmux set -go @pl33t-status-segment-time-style "fg=black#,bg=white"
+tmux set -go @pl33t-status-segment-time-style "fg=black,bg=white"
 # date segment
 tmux set -go @pl33t-status-segment-date-content "   %d-%b-%y "
 tmux set -go @pl33t-status-segment-date-separator "left-,triangle"
-tmux set -go @pl33t-status-segment-date-style "fg=black#,bg=#{@pl33t-accent-color}"
+tmux set -go @pl33t-status-segment-date-style "fg=black,bg=#{@pl33t-accent-color}"
 # segments location
 tmux set -go @pl33t-status-left-segments "host,session,window"
 tmux set -go @pl33t-status-centre-segments "winstatus" # 'winstatus' is reserved segment name
@@ -82,18 +82,18 @@ tmux set -go @pl33t-status-right-segments "time,date"
 tmux set -go @pl33t-window-status-content " #{window_index} #{window_name} "
 # separator directions for left-from-current and right-from-current windows
 tmux set -go @pl33t-window-status-separator "left-left,right-right,triangle"
-tmux set -go @pl33t-window-status-style "fg=black#,bg=colour241"
+tmux set -go @pl33t-window-status-style "fg=black,bg=colour241"
 
 # current window
 tmux set -go @pl33t-window-status-current-content " #{window_index} #{window_name} "
 tmux set -go @pl33t-window-status-current-separator "left-right,triangle"
-tmux set -go @pl33t-window-status-current-style "fg=black#,bg=#{@pl33t-accent-color}"
+tmux set -go @pl33t-window-status-current-style "fg=black,bg=#{@pl33t-accent-color}"
 
 # window supplementary styles
-tmux set -go @pl33t-window-status-activity-style "fg=black#,bg=green"
-tmux set -go @pl33t-window-status-bell-style "fg=brightyellow#,bg=red#,blink"
-tmux set -go @pl33t-window-status-last-style "fg=black#,bg=colour245"
-tmux set -go @pl33t-window-status-silence-style "fg=black#,bg=magenta"
+tmux set -go @pl33t-window-status-activity-style "fg=black,bg=green"
+tmux set -go @pl33t-window-status-bell-style "fg=brightyellow,bg=red,blink"
+tmux set -go @pl33t-window-status-last-style "fg=black,bg=colour245"
+tmux set -go @pl33t-window-status-silence-style "fg=black,bg=magenta"
 
 # ---- feature scripts settings ----
 # wttr settings. use #{E:@pl33t-features-wttr} in status format variables to display
