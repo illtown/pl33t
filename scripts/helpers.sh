@@ -39,6 +39,7 @@ SepFormatPicker() {
 StyleParser() {
     local style="$(GetTmuxOption $1)"
     local i
+    fg= bg= attr=
     for i in $(echo ${style} | sed -E 's/,+/ /g'); do
         case $i in
             [bf]g=* )
