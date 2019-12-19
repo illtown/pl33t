@@ -39,13 +39,18 @@ SepFormatPicker() {
 StyleParser() {
     local style="$(GetTmuxOption $1)"
     local i
-    fg= bg= attr=
-    for i in $(echo ${style} | sed -E 's/,+/ /g'); do
+    fg= bg= attr= tmp=
+    for i in $(echo ${style//,/ }); do
         case $i in
             [bf]g=* )
-                eval $i ;;
+                eval $i
+            ;;
+            tmp )
+                tmp='yes'
+            ;;
             * )
-                attr+="$i#," ;;
+                attr+="#,$i"
+            ;;
         esac
     done
 }

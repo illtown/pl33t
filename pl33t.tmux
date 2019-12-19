@@ -4,7 +4,7 @@
 
 # main starting point
 Main() {
-    SanityCheck
+    #SanityCheck
     CURRENT_DIR="$(dirname $0)"
     source "${CURRENT_DIR}/scripts/helpers.sh"
     source "${CURRENT_DIR}/scripts/variables.sh"
@@ -19,14 +19,6 @@ SanityCheck() {
         tmux display "$(basename $0): Tmux version 3+ needed"
         exit 1
     fi
-    # utils check
-    local util
-    for util in sed; do
-        if ! hash ${util} &>/dev/null; then
-            tmux display "$(basename $0): ${util} utility needed"
-            exit 1
-        fi
-    done
 }
 
 # apply theme in stages
@@ -142,22 +134,19 @@ StatusSideBuilder() {
 
 # status line side segment builder
 StatusSegmentBuilder() {
-    # get current segment's style, ...
+    # get current segment's settings
+    IFS=,
+    local segment_separator=($(GetTmuxOption @pl33t-status-segment-${segment}-separator))
+    unset IFS
     StyleParser @pl33t-status-segment-${segment}-style
     local segment_fg="${fg:-#{E:@pl33t-status-fg\}}"
     local segment_bg="${bg:-#{E:@pl33t-status-bg\}}"
     local segment_attr="${attr}"
-    # ... content
-    local segment_content=$(GetTmuxOption @pl33t-status-segment-${segment}-content)
-    # ... and separator
-    IFS=,
-    local segment_separator=($(GetTmuxOption @pl33t-status-segment-${segment}-separator))
-    unset IFS
 
     # segment separators
     local -a segment_sep_format_list
-    segment_sep_format_list[0]="#[fg=${segment_bg}#,bg=#{@pl33t-status-bg}#,${segment_attr}none]"
-    segment_sep_format_list[1]="#[fg=#{@pl33t-status-bg}#,bg=${segment_bg}#,${segment_attr}none]"
+    segment_sep_format_list[0]="#[fg=${segment_bg}#,bg=#{@pl33t-status-bg}${segment_attr}#,none]"
+    segment_sep_format_list[1]="#[fg=#{@pl33t-status-bg}#,bg=${segment_bg}${segment_attr}#,none]"
     eval segment_sep_format_list[2]="\${pl33t_pl_${segment_separator[1]}_left_opaque}"
     eval segment_sep_format_list[3]="\${pl33t_pl_${segment_separator[1]}_right_opaque}"
 
@@ -166,10 +155,12 @@ StatusSegmentBuilder() {
     local segment_sep_right_format="${sep_format_picker_list[1]}"
 
     # segment format builder
+    [[ -n ${tmp} ]] && segment_format+="#{?#{T:@pl33t-status-segment-${segment}-content},"
     segment_format+="${segment_sep_left_format}" # left separator
-    segment_format+="#[#{E:@pl33t-status-segment-${segment}-style}]" # style
-    segment_format+="${segment_content}" # content
+    segment_format+="#[fg=${segment_fg}#,bg=${segment_bg}${segment_attr}]" # style
+    segment_format+="#{T:@pl33t-status-segment-${segment}-content}" # content
     segment_format+="${segment_sep_right_format}" # right separator
+    [[ -n ${tmp} ]] && segment_format+=",}"
 }
 
 # window status modifications
@@ -183,20 +174,20 @@ WindowStatusModding() {
     # window status styles builder
     for style_name in '' 'current' 'activity' 'bell' 'last' 'silence'; do
         StyleParser @pl33t-window-status-${style_name:+${style_name}-}style
-        eval local win_status_${style_name:+${style_name}_}bg=${bg}
-        eval local win_status_${style_name:+${style_name}_}attr=${attr}
+        eval local win_status_${style_name:+${style_name}_}bg="${bg}"
+        eval local win_status_${style_name:+${style_name}_}attr="${attr}"
     done
     unset style_name
 
     # normal windows separators
     local -a win_sep_format_list
-    win_sep_format_list[0]="#[fg=${win_status_bg}#,bg=#{E:@pl33t-status-bg}#,${win_status_attr}none]"
+    win_sep_format_list[0]="#[fg=${win_status_bg}#,bg=#{E:@pl33t-status-bg}${win_status_attr}#,none]"
     win_sep_format_list[0]+="#{?#{window_last_flag},#[fg=${win_status_last_bg}],}"
     win_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
     win_sep_format_list[0]+="#{?#{window_activity_flag},#[fg=${win_status_activity_bg}],}"
     win_sep_format_list[0]+="#{?#{window_silence_flag},#[fg=${win_status_silence_bg}],}"
 
-    win_sep_format_list[1]="#[bg=${win_status_bg}#,fg=#{E:@pl33t-status-bg}#,${win_status_attr}none]"
+    win_sep_format_list[1]="#[bg=${win_status_bg}#,fg=#{E:@pl33t-status-bg}${win_status_attr}#,none]"
     win_sep_format_list[1]+="#{?#{window_last_flag},#[bg=${win_status_last_bg}],}"
     win_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
     win_sep_format_list[1]+="#{?#{window_activity_flag},#[bg=${win_status_activity_bg}],}"
@@ -214,12 +205,12 @@ WindowStatusModding() {
 
     # current window separators
     local -a win_cur_sep_format_list
-    win_cur_sep_format_list[0]="#[fg=${win_status_current_bg}#,bg=#{E:@pl33t-status-bg}#,${win_status_current_attr}none]"
+    win_cur_sep_format_list[0]="#[fg=${win_status_current_bg}#,bg=#{E:@pl33t-status-bg}${win_status_current_attr}#,none]"
     win_cur_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
     win_cur_sep_format_list[0]+="#{?#{window_activity_flag},#[fg=${win_status_activity_bg}],}"
     win_cur_sep_format_list[0]+="#{?#{window_silence_flag},#[fg=${win_status_silence_bg}],}"
 
-    win_cur_sep_format_list[1]="#[bg=${win_status_current_bg}#,fg=#{E:@pl33t-status-bg}#,${win_status_current_attr}none]"
+    win_cur_sep_format_list[1]="#[bg=${win_status_current_bg}#,fg=#{E:@pl33t-status-bg}${win_status_current_attr}#,none]"
     win_cur_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
     win_cur_sep_format_list[1]+="#{?#{window_activity_flag},#[bg=${win_status_activity_bg}],}"
     win_cur_sep_format_list[1]+="#{?#{window_silence_flag},#[bg=${win_status_silence_bg}],}"
