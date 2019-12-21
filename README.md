@@ -29,7 +29,7 @@ Reload TMUX environment:
 To run this theme you need:
 
 * sed utility
-* tmux version 3+
+* tmux version 3+ (should now work on prior versions too, not tested)
 * powerline enabled fonts ([nerdfonts](https://www.nerdfonts.com) recommended)
 
 ## Customization
