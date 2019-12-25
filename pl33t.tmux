@@ -146,7 +146,7 @@ StatusSegmentBuilder() {
     # segment separators
     local -a segment_sep_format_list
     segment_sep_format_list[0]="#[fg=${segment_bg}#,bg=#{@pl33t-status-bg}${segment_attr}#,none]"
-    segment_sep_format_list[1]="#[fg=#{@pl33t-status-bg}#,bg=${segment_bg}${segment_attr}#,none]"
+    segment_sep_format_list[1]="#[bg=${segment_bg}#,fg=#{@pl33t-status-bg}${segment_attr}#,none]"
     eval segment_sep_format_list[2]="\${pl33t_pl_${segment_separator[1]}_left_opaque}"
     eval segment_sep_format_list[3]="\${pl33t_pl_${segment_separator[1]}_right_opaque}"
 
