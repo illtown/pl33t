@@ -28,14 +28,14 @@ Reload TMUX environment:
 
 To run this theme you need:
 
-* sed utility
-* tmux version 3+ (should now work on prior versions too, not tested)
+* bash
+* tmux (v3+ recommended. prior versions should work too, not tested)
 * powerline enabled fonts ([nerdfonts](https://www.nerdfonts.com) recommended)
 
 ## Customization
 Default theme settings are located in [variables.sh](scripts/variables.sh) file and have `@pl33t-` prefix. You may override them in your `tmux.conf`.
 ### status lines
-At the beginning pl33t checks `@pl33t-status-lines` variable, which tells how many status lines it's going to pre-configure (tmux allows you to have upto 5 status lines).
+In the beginning pl33t checks `@pl33t-status-lines` variable, which tells how many status lines it's going to pre-configure (tmux allows you to have upto 5 status lines).
 Then, each line gets divided into 3 parts: left, centre and right. Pl33t fills tmux `status-format[x]` variables to achieve that:
 ```
 status-format[0] "#{T:@pl33t-status-left-format}#{T:@pl33t-status-centre-format}#{T:@pl33t-status-right-format}"
@@ -44,11 +44,13 @@ status-format[1] "#{T:@pl33t-status-line1-left-format}#{T:@pl33t-status-line1-ce
 Pl33t then introduces new level of abstraction - segments, which are the building blocks for these left, centre and right format options.
 The process of configuring status lines looks like this:
   * define segments and its parameters
-  * fill `@pl33t-status-(left|centre|right)-segments` variables with comma-separated lists of segment names. For status lines other than the default you must add `-lineX-` prefix, where X is in 1-4 range.
+  * fill `@pl33t-status-(left|centre|right)-segments` variables with comma-separated lists of segment names. For status lines other than the default you must add `-lineX-` to the variable name (like in status-format[1] content shown above), where X is in 1-4 range.
 ### segments
 Each segment consists of 3 variables:
   * `@pl33t-status-segment-<name>-content`. Defines the segment content
-  * `@pl33t-status-segment-<name>-separator`. Segment separator settings consisting of 2 parameters: direction and shape
+  * `@pl33t-status-segment-<name>-separator`. Segment separator settings consisting of 2 parameters:
+    * direction. Defines left and right segment's separator directions. Direction string is searched for words 'left' and 'right' and whether they are seen at the beginning or end of the string. For example, `left` and `left-left` are equivalents.
+    * shape. One word parameter, e.g. triangle. complete list of shapes may be found at the bottom of [variables.sh](scripts/variables.sh) (pl33t_pl_* variables).
   * `@pl33t-status-segment-<name>-style`. Corresponds to tmux style settings.
 
 You may choose any segment name you want as long as it gets referenced under `@pl33t-status-*-segments` variables.
