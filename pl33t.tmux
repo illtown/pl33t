@@ -183,15 +183,15 @@ WindowStatusModding() {
     local -a win_sep_format_list
     win_sep_format_list[0]="#[fg=${win_status_bg}#,bg=#{E:@pl33t-status-bg}${win_status_attr}#,none]"
     win_sep_format_list[0]+="#{?#{window_last_flag},#[fg=${win_status_last_bg}],}"
-    win_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
     win_sep_format_list[0]+="#{?#{window_activity_flag},#[fg=${win_status_activity_bg}],}"
     win_sep_format_list[0]+="#{?#{window_silence_flag},#[fg=${win_status_silence_bg}],}"
+    win_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
 
     win_sep_format_list[1]="#[bg=${win_status_bg}#,fg=#{E:@pl33t-status-bg}${win_status_attr}#,none]"
     win_sep_format_list[1]+="#{?#{window_last_flag},#[bg=${win_status_last_bg}],}"
-    win_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
     win_sep_format_list[1]+="#{?#{window_activity_flag},#[bg=${win_status_activity_bg}],}"
     win_sep_format_list[1]+="#{?#{window_silence_flag},#[bg=${win_status_silence_bg}],}"
+    win_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
 
     eval win_sep_format_list[2]="\${pl33t_pl_${win_separator[2]}_left_opaque}"
     eval win_sep_format_list[3]="\${pl33t_pl_${win_separator[2]}_right_opaque}"
@@ -206,14 +206,14 @@ WindowStatusModding() {
     # current window separators
     local -a win_cur_sep_format_list
     win_cur_sep_format_list[0]="#[fg=${win_status_current_bg}#,bg=#{E:@pl33t-status-bg}${win_status_current_attr}#,none]"
-    win_cur_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
     win_cur_sep_format_list[0]+="#{?#{window_activity_flag},#[fg=${win_status_activity_bg}],}"
     win_cur_sep_format_list[0]+="#{?#{window_silence_flag},#[fg=${win_status_silence_bg}],}"
+    win_cur_sep_format_list[0]+="#{?#{window_bell_flag},#[fg=${win_status_bell_bg}],}"
 
     win_cur_sep_format_list[1]="#[bg=${win_status_current_bg}#,fg=#{E:@pl33t-status-bg}${win_status_current_attr}#,none]"
-    win_cur_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
     win_cur_sep_format_list[1]+="#{?#{window_activity_flag},#[bg=${win_status_activity_bg}],}"
     win_cur_sep_format_list[1]+="#{?#{window_silence_flag},#[bg=${win_status_silence_bg}],}"
+    win_cur_sep_format_list[1]+="#{?#{window_bell_flag},#[bg=${win_status_bell_bg}],}"
 
     eval win_cur_sep_format_list[2]="\${pl33t_pl_${win_cur_separator[1]}_left_opaque}"
     eval win_cur_sep_format_list[3]="\${pl33t_pl_${win_cur_separator[1]}_right_opaque}"
@@ -233,9 +233,9 @@ WindowStatusModding() {
     window_status_format+="#{?#{m:*#I *A*,#{W:#I ,A }},${win_left_sep_left_format},${win_right_sep_left_format}}" # left separator
     window_status_format+="#[#{E:@pl33t-window-status-style}]" # default style
     window_status_format+="#{?#{window_last_flag},#[#{E:@pl33t-window-status-last-style}],}" # last style
-    window_status_format+="#{?#{window_bell_flag},#[#{E:@pl33t-window-status-bell-style}],}" # bell style
     window_status_format+="#{?#{window_activity_flag},#[#{E:@pl33t-window-status-activity-style}],}" # activity style
     window_status_format+="#{?#{window_silence_flag},#[#{E:@pl33t-window-status-silence-style}],}" # silence style
+    window_status_format+="#{?#{window_bell_flag},#[#{E:@pl33t-window-status-bell-style}],}" # bell style
     window_status_format+="#{T:@pl33t-window-status-content}" # content
     window_status_format+="#{?#{m:*#I *A*,#{W:#I ,A }},${win_left_sep_right_format},${win_right_sep_right_format}}" # right separator
     window_status_format+="#[norange#,default],"
@@ -243,9 +243,9 @@ WindowStatusModding() {
     window_status_format+="#[range=window|#{window_index}]"
     window_status_format+="${win_cur_sep_left_format}" # left separator
     window_status_format+="#[#{E:@pl33t-window-status-current-style}]" # default style
-    window_status_format+="#{?#{window_bell_flag},#[#{E:@pl33t-window-status-bell-style}],}" # bell style
     window_status_format+="#{?#{window_activity_flag},#[#{E:@pl33t-window-status-activity-style}],}" # activity style
     window_status_format+="#{?#{window_silence_flag},#[#{E:@pl33t-window-status-silence-style}],}" # silence style
+    window_status_format+="#{?#{window_bell_flag},#[#{E:@pl33t-window-status-bell-style}],}" # bell style
     window_status_format+="#{T:@pl33t-window-status-current-content}" # content
     window_status_format+="${win_cur_sep_right_format}" # right separator
     # window status footer
