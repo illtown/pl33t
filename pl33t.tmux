@@ -113,7 +113,11 @@ StatusSideBuilder() {
     unset IFS
 
     # status side format header
-    status_side_format+="#[align=${side}]"
+    if [[ -z ${line_name} && ${side} =~ ^(left|right)$ ]]; then
+        status_side_format+="#[align=${side} range=${side}]"
+    else
+        status_side_format+="#[align=${side}]"
+    fi
 
     # status side segment builder
     local segment
@@ -129,7 +133,11 @@ StatusSideBuilder() {
     done
 
     # status side format footer
-    status_side_format+='#[default]'
+    if [[ -z ${line_name} && ${side} =~ ^(left|right)$ ]]; then
+        status_side_format+='#[norange default]'
+    else
+        status_side_format+='#[default]'
+    fi
 }
 
 # status line side segment builder
@@ -227,9 +235,8 @@ WindowStatusModding() {
 
     # window status header
     window_status_format+="#[align=${side}]"
-    # window status body
-    window_status_format+="#{W:#[range=window|#{window_index}]"
     # normal windows
+    window_status_format+="#{W:#[range=window|#{window_index}]"
     window_status_format+="#{?#{m:*#I *A*,#{W:#I ,A }},${win_left_sep_left_format},${win_right_sep_left_format}}" # left separator
     window_status_format+="#[#{E:@pl33t-window-status-style}]" # default style
     window_status_format+="#{?#{window_last_flag},#[#{E:@pl33t-window-status-last-style}],}" # last style
@@ -238,7 +245,7 @@ WindowStatusModding() {
     window_status_format+="#{?#{window_bell_flag},#[#{E:@pl33t-window-status-bell-style}],}" # bell style
     window_status_format+="#{T:@pl33t-window-status-content}" # content
     window_status_format+="#{?#{m:*#I *A*,#{W:#I ,A }},${win_left_sep_right_format},${win_right_sep_right_format}}" # right separator
-    window_status_format+="#[norange#,default],"
+    window_status_format+="#[norange default],"
     # current window
     window_status_format+="#[range=window|#{window_index}]"
     window_status_format+="${win_cur_sep_left_format}" # left separator
@@ -248,8 +255,7 @@ WindowStatusModding() {
     window_status_format+="#{?#{window_bell_flag},#[#{E:@pl33t-window-status-bell-style}],}" # bell style
     window_status_format+="#{T:@pl33t-window-status-current-content}" # content
     window_status_format+="${win_cur_sep_right_format}" # right separator
-    # window status footer
-    window_status_format+='#[norange#,default]}'
+    window_status_format+='#[norange default]}'
 
     # set window status format
     tmux set -g @pl33t-window-status-format "${window_status_format}"
