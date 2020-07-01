@@ -73,9 +73,9 @@ tmux set -go @pl33t-status-segment-date-content '   %d-%b-%y '
 tmux set -go @pl33t-status-segment-date-separator 'left-,triangle'
 tmux set -go @pl33t-status-segment-date-style 'fg=black,bg=#{@pl33t-accent-color}'
 # segments location
-tmux set -go @pl33t-status-left-segments 'host,session,window'
-tmux set -go @pl33t-status-centre-segments 'winstatus' # 'winstatus' is reserved segment name
-tmux set -go @pl33t-status-right-segments 'time,date'
+tmux set -go @pl33t-status-0-left-segments 'host,session,window'
+tmux set -go @pl33t-status-0-centre-segments 'winstatus' # 'winstatus' is reserved segment name
+tmux set -go @pl33t-status-0-right-segments 'time,date'
 
 # ---- window status modding ----
 # normal windows

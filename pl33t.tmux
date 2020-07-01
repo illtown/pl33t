@@ -87,13 +87,12 @@ PaneModding() {
 StatusLineModding() {
     # track current status line
     local line_ndx=$1
-    [[ ${line_ndx} -ne 0 ]] && local line_name="-line${line_ndx}"
 
     # status line template
     local status_format=''
-    status_format+="#{T:@pl33t-status${line_name}-left-format}"
-    status_format+="#{T:@pl33t-status${line_name}-centre-format}"
-    status_format+="#{T:@pl33t-status${line_name}-right-format}"
+    status_format+="#{T:@pl33t-status-${line_ndx}-left-format}"
+    status_format+="#{T:@pl33t-status-${line_ndx}-centre-format}"
+    status_format+="#{T:@pl33t-status-${line_ndx}-right-format}"
     tmux set -g "status-format[${line_ndx}]" "${status_format}"
 
     local side
@@ -101,7 +100,7 @@ StatusLineModding() {
         # set status side format
         local status_side_format=''
         StatusSideBuilder
-        tmux set -g @pl33t-status${line_name}-${side}-format "${status_side_format}"
+        tmux set -g @pl33t-status-${line_ndx}-${side}-format "${status_side_format}"
     done
 }
 
@@ -109,11 +108,11 @@ StatusLineModding() {
 StatusSideBuilder() {
     # status side segments parser
     IFS=,
-    local side_segments_list=($(GetTmuxOption @pl33t-status${line_name}-${side}-segments))
+    local side_segments_list=($(GetTmuxOption @pl33t-status-${line_ndx}-${side}-segments))
     unset IFS
 
     # status side format header
-    if [[ -z ${line_name} && ${side} =~ ^(left|right)$ ]]; then
+    if [[ ${line_ndx} -eq 0 && ${side} =~ ^(left|right)$ ]]; then
         status_side_format+="#[align=${side} range=${side}]"
     else
         status_side_format+="#[align=${side}]"
@@ -133,7 +132,7 @@ StatusSideBuilder() {
     done
 
     # status side format footer
-    if [[ -z ${line_name} && ${side} =~ ^(left|right)$ ]]; then
+    if [[ ${line_ndx} -eq 0 && ${side} =~ ^(left|right)$ ]]; then
         status_side_format+='#[norange default]'
     else
         status_side_format+='#[default]'
