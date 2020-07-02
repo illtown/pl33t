@@ -39,26 +39,31 @@ wttr() {
 # get public ip
 publicip() {
     local methods=(dig curl wget)
-    local method result
+    local method ip ipv4 ipv6
+    local public_ipv4_host='https://v4.ident.me'
+    local public_ipv6_host='https://v6.ident.me'
 
     for method in ${methods[@]}; do
         case ${method} in
             'dig' )
-                result=$(dig +time=1 +tries=1 +short myip.opendns.com @resolver1.opendns.com 2> /dev/null)
-                [[ ${result} =~ ^\; ]] && unset result
+                ipv4=$(dig +tries=1 +short -4 A myip.opendns.com @resolver1.opendns.com 2>/dev/null)
+                ipv6=$(dig +tries=1 +short -6 AAAA myip.opendns.com @resolver1.opendns.com 2>/dev/null)
             ;;
             'curl' )
-                result=$(curl --max-time 10 -w '\n' http://ident.me 2> /dev/null)
+                ipv4=$(curl --max-time 5 -w '\n' ${public_ipv4_host} 2>/dev/null)
+                ipv6=$(curl --max-time 5 -w '\n' ${public_ipv6_host} 2>/dev/null)
             ;;
             'wget' )
-                result=$(wget -T 10 -qO- http://ident.me 2> /dev/null)
+                ipv4=$(wget -T 5 -qO- ${public_ipv4_host} 2>/dev/null)
+                ipv6=$(wget -T 5 -qO- ${public_ipv6_host} 2>/dev/null)
             ;;
         esac
-        # break if result is found
-        [[ -n ${result} ]] && break
+        # break if ip is found
+        [[ ${ipv4} =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] && { ip=${ipv4}; break; }
+        [[ ${ipv6} =~ ^[0-9a-f:]{3,39}$ ]] && { ip=${ipv6}; break; }
     done
 
-    tmux set ${tmux_var} "${result}"
+    tmux set ${tmux_var} "${ip}"
 }
 
 main $@
