@@ -1,5 +1,9 @@
 # pl33t
 Powerline-extra enabled theme for Tmux.
+## Screenshots
+|![pl33t panes](screenshots/pl33t_panes.png)|![pl33t indicators](screenshots/pl33t_indicators.png)|![pl33t background activity](screenshots/pl33t_bg_activity.png)|
+|-|-|-|
+
 ## Installation
 ### with [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm)
 
