@@ -32,7 +32,7 @@ wttr() {
     # help: curl wttr.in/:help
     # homepage: https://github.com/chubin/wttr.in
     local opts=${1:-'?format=3'}        # defaults to oneline format 3 output
-    local result="$(curl --compressed --max-time 10 wttr.in/${opts})"
+    local result="$(curl --max-time 5 wttr.in/${opts} 2>/dev/null)"
     tmux set ${tmux_var} "${result}"
 }
 
@@ -50,8 +50,8 @@ publicip() {
                 ipv6=$(dig +tries=1 +short -6 AAAA myip.opendns.com @resolver1.opendns.com 2>/dev/null)
             ;;
             'curl' )
-                ipv4=$(curl --max-time 5 -w '\n' ${public_ipv4_host} 2>/dev/null)
-                ipv6=$(curl --max-time 5 -w '\n' ${public_ipv6_host} 2>/dev/null)
+                ipv4=$(curl --max-time 5 ${public_ipv4_host} 2>/dev/null)
+                ipv6=$(curl --max-time 5 ${public_ipv6_host} 2>/dev/null)
             ;;
             'wget' )
                 ipv4=$(wget -T 5 -qO- ${public_ipv4_host} 2>/dev/null)
