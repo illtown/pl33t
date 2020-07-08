@@ -15,42 +15,46 @@ GetTmuxOption() {
 
 # separator format picker
 SepFormatPicker() {
-    local -a in_sep_format_list=("${!1}")
+    local -a input_list=("${!1}")
     local sep_dir=$2
     sep_format_picker_list=('' '')
 
     case ${sep_dir} in
         left* )
-            sep_format_picker_list[0]="${in_sep_format_list[0]}${in_sep_format_list[2]}"
+            sep_format_picker_list[0]="${input_list[0]}${input_list[2]}"
         ;;&
         right* )
-            sep_format_picker_list[0]="${in_sep_format_list[1]}${in_sep_format_list[3]}"
+            sep_format_picker_list[0]="${input_list[1]}${input_list[3]}"
         ;;&
         *left )
-            sep_format_picker_list[1]="${in_sep_format_list[1]}${in_sep_format_list[2]}"
+            sep_format_picker_list[1]="${input_list[1]}${input_list[2]}"
         ;;&
         *right )
-            sep_format_picker_list[1]="${in_sep_format_list[0]}${in_sep_format_list[3]}"
+            sep_format_picker_list[1]="${input_list[0]}${input_list[3]}"
         ;;
     esac
 }
 
-# tmux style string parser
+# tmux style string parser (with custom attrs)
 StyleParser() {
     local style="$(GetTmuxOption $1)"
     local i
-    fg= bg= attr= tmp=
+    fg= bg= attr= tmp= clear=
     for i in $(echo ${style//,/ }); do
         case $i in
-            [bf]g=* )
+            [bf]g=* ) # fg,bg colors
                 eval $i
             ;;
-            tmp )
+            tmp ) # temporal. only show if not empty
                 tmp='yes'
             ;;
-            * )
+            clear ) # clear-style separators. default is opaque
+                clear='yes'
+            ;;
+            * ) # the rest
                 attr+="#,$i"
             ;;
         esac
     done
+    attr=${attr#\#,}
 }

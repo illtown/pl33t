@@ -58,7 +58,7 @@ publicip() {
                 ipv6=$(wget -T 5 -qO- ${public_ipv6_host} 2>/dev/null)
             ;;
         esac
-        # break if ip is found
+        # break if ip is found (ipv4 preferred)
         [[ ${ipv4} =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] && { ip=${ipv4}; break; }
         [[ ${ipv6} =~ ^[0-9a-f:]{3,39}$ ]] && { ip=${ipv6}; break; }
     done
