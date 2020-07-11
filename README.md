@@ -46,18 +46,21 @@ status-format[0] "#{T:@pl33t-status-0-left-format}#{T:@pl33t-status-0-centre-for
 status-format[1] "#{T:@pl33t-status-1-left-format}#{T:@pl33t-status-1-centre-format}#{T:@pl33t-status-1-right-format}"
 ```
 Pl33t then introduces new level of abstraction - segments, which are the building blocks for these left, centre and right format options.
-The process of configuring status lines looks like this:
-  * define segments and its parameters
+The process of configuring status lines (and pane borders) looks like this:
+  * define segments and its parameters (explained below)
   * fill `@pl33t-status-(0|1|2|3|4)-(left|centre|right)-segments` variables with comma-separated lists of segment names. Number specifies status line in question.
+  * fill `@pl33t-pane-(active|other)-border-segments` variables with lists of segment names.
 ### segments
 Each segment consists of 3 variables:
-  * `@pl33t-status-segment-<name>-content`. Defines the segment content
-  * `@pl33t-status-segment-<name>-separator`. Segment separator settings consisting of 2 parameters:
+  * `@pl33t-segment-<name>-content`. Defines the segment content
+  * `@pl33t-segment-<name>-separator`. Segment separator settings consisting of 2 parameters:
     * direction. Defines left and right segment's separator directions. Direction string is searched for words 'left' and 'right' and whether they are seen at the beginning or end of the string. For example, `left` and `left-left` are equivalents.
     * shape. One word parameter, e.g. triangle. complete list of shapes may be found at the bottom of [variables.sh](scripts/variables.sh) (pl33t_pl_* variables).
-  * `@pl33t-status-segment-<name>-style`. Corresponds to tmux style settings.
+  * `@pl33t-segment-<name>-style`. Corresponds to tmux style settings. This style string may include pl33t-specific attributes:
+    * `tmp`. makes segment invisible if it's content is 0 or empty
+    * `clear`. specifies clear segment separators to be used instead of opaque (default).
 
-You may choose any segment name you want as long as it gets referenced under `@pl33t-status-*-segments` variables.
+You may choose any segment name you want as long as it gets referenced under `@pl33t-*-segments` variables.
 
 There is one reserved segment name - `winstatus`, which deals with window list and has its own set of `@pl33t-window-status-*` variables.
 ### examples
@@ -66,22 +69,22 @@ Try adding this to your `tmux.conf`:
 # ---- tmux-pl33t ----
 # status line segments
 # copy-mode indicator
-set -g @pl33t-status-segment-mode-content "#{?#{pane_in_mode},  ,}"
-set -g @pl33t-status-segment-mode-separator 'left,triangle'
-set -g @pl33t-status-segment-mode-style "fg=black,bg=green,tmp"
+set -g @pl33t-segment-mode-content "#{?#{pane_in_mode},  ,}"
+set -g @pl33t-segment-mode-separator 'left,triangle'
+set -g @pl33t-segment-mode-style "fg=black,bg=green,tmp"
 # synchronize-panes indicator
-set -g @pl33t-status-segment-sync-content "#{?#{pane_synchronized}, 痢,}"
-set -g @pl33t-status-segment-sync-separator 'left,triangle'
-set -g @pl33t-status-segment-sync-style "fg=black,bg=blue,tmp"
+set -g @pl33t-segment-sync-content "#{?#{pane_synchronized}, 痢,}"
+set -g @pl33t-segment-sync-separator 'left,triangle'
+set -g @pl33t-segment-sync-style "fg=black,bg=blue,tmp"
 # zoom indicator
-set -g @pl33t-status-segment-zoom-content "#{?#{window_zoomed_flag},  ,}"
-set -g @pl33t-status-segment-zoom-separator 'left,triangle'
-set -g @pl33t-status-segment-zoom-style "fg=black,bg=magenta,tmp"
+set -g @pl33t-segment-zoom-content "#{?#{window_zoomed_flag},  ,}"
+set -g @pl33t-segment-zoom-separator 'left,triangle'
+set -g @pl33t-segment-zoom-style "fg=black,bg=magenta,tmp"
 # prefix indicator
-set -g @pl33t-status-segment-prefix-content "#{?#{client_prefix}, ,}"
-set -g @pl33t-status-segment-prefix-separator 'left-right,triangle'
-set -g @pl33t-status-segment-prefix-style "fg=black,bg=red,tmp"
+set -g @pl33t-segment-prefix-content "#{?#{client_prefix}, ,}"
+set -g @pl33t-segment-prefix-separator 'left-right,triangle'
+set -g @pl33t-segment-prefix-style "fg=black,bg=red,tmp"
 # status line segments
 set -g @pl33t-status-0-right-segments 'prefix,zoom,mode,time,date'
 ```
-This example shows how to define your own segments and the use of `tmp` style parameter (pl33t-specific), which hides the segment if its content is zero or empty.
+This example shows how to define your own segments and the use of `tmp` style parameter (pl33t-specific).
