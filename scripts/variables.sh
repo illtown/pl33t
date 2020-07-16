@@ -73,20 +73,20 @@ tmux set -go @pl33t-status-0-centre-segments 'winstatus' # 'winstatus' is reserv
 tmux set -go @pl33t-status-0-right-segments 'time,date'
 
 # ---- window status modding ----
-# normal windows
-tmux set -go @pl33t-window-status-content ' #{window_index} #{window_name} '
-# separator directions for left-from-current and right-from-current windows
-tmux set -go @pl33t-window-status-separator 'left,right,triangle'
-tmux set -go @pl33t-window-status-style 'fg=black,bg=colour241'
 # current window
-tmux set -go @pl33t-window-status-current-content ' #{window_index} #{window_name} '
-tmux set -go @pl33t-window-status-current-separator 'left-right,triangle'
-tmux set -go @pl33t-window-status-current-style 'fg=black,bg=#{@pl33t-color-accent}'
+tmux set -go @pl33t-winstatus-current-content ' #{window_index} #{window_name} '
+tmux set -go @pl33t-winstatus-current-separator 'left-right,triangle'
+tmux set -go @pl33t-winstatus-current-style 'fg=black,bg=#{@pl33t-color-accent}'
+# other windows
+tmux set -go @pl33t-winstatus-other-content ' #{window_index} #{window_name} '
+# separator directions for left-from-current and right-from-current windows
+tmux set -go @pl33t-winstatus-other-separator 'left,right,triangle'
+tmux set -go @pl33t-winstatus-other-style 'fg=black,bg=colour241'
 # window supplementary styles
-tmux set -go @pl33t-window-status-activity-style 'fg=black,bg=green'
-tmux set -go @pl33t-window-status-bell-style 'fg=brightyellow,bg=red,blink'
-tmux set -go @pl33t-window-status-last-style 'fg=black,bg=colour245'
-tmux set -go @pl33t-window-status-silence-style 'fg=black,bg=magenta'
+tmux set -go @pl33t-winstatus-activity-style 'fg=black,bg=green'
+tmux set -go @pl33t-winstatus-bell-style 'fg=brightyellow,bg=red,blink'
+tmux set -go @pl33t-winstatus-last-style 'fg=black,bg=colour245'
+tmux set -go @pl33t-winstatus-silence-style 'fg=black,bg=magenta'
 
 # ---- feature scripts settings ----
 # wttr settings. use #{E:@pl33t-features-wttr} in status format variables to display

@@ -13,46 +13,60 @@ GetTmuxOption() {
     fi
 }
 
-# separator format picker
-SepFormatPicker() {
-    local -a input_list=("${!1}")
-    local sep_dir=$2
-    sep_format_picker_list=('' '')
+# separator format parser
+SepFormatParser() {
+    local format sep_formats="$(GetTmuxOption $1)"
+    local dir_format_cntr
 
-    case ${sep_dir} in
-        left* )
-            sep_format_picker_list[0]="${input_list[0]}${input_list[2]}"
-        ;;&
-        right* )
-            sep_format_picker_list[0]="${input_list[1]}${input_list[3]}"
-        ;;&
-        *left )
-            sep_format_picker_list[1]="${input_list[1]}${input_list[2]}"
-        ;;&
-        *right )
-            sep_format_picker_list[1]="${input_list[0]}${input_list[3]}"
-        ;;
-    esac
+    for format in ${sep_formats//,/ }; do
+        if [[ ${format} =~ ^(left|right)?(-(left|right)?)?$ ]]; then
+            case ${format} in
+                left* )
+                    lsep_ndx[${dir_format_cntr}]=0
+                    lsep_ndx[${dir_format_cntr} + 1]=2
+                ;;&
+                right* )
+                    lsep_ndx[${dir_format_cntr}]=1
+                    lsep_ndx[${dir_format_cntr} + 1]=3
+                ;;&
+                *left )
+                    rsep_ndx[${dir_format_cntr}]=1
+                    rsep_ndx[${dir_format_cntr} + 1]=2
+                ;;&
+                *right )
+                    rsep_ndx[${dir_format_cntr}]=0
+                    rsep_ndx[${dir_format_cntr} + 1]=3
+                ;;&
+                * )
+                    (( dir_format_cntr+=2 ))
+                ;;
+            esac
+        else
+            case ${format} in
+                clear ) # clear-style separators. default is opaque
+                    clear='yes'
+                ;;
+                * )
+                    sep_shape="${format}"
+                ;;
+            esac
+        fi
+    done
 }
 
 # tmux style string parser (with custom attrs)
 StyleParser() {
-    local style="$(GetTmuxOption $1)"
-    local i
-    fg= bg= attr= tmp= clear=
-    for i in $(echo ${style//,/ }); do
-        case $i in
+    local style styles="$(GetTmuxOption $1)"
+    for style in ${styles//,/ }; do
+        case ${style} in
             [bf]g=* ) # fg,bg colors
-                eval $i
+                eval ${style}
             ;;
             tmp ) # temporal. only show if not empty
                 tmp='yes'
             ;;
-            clear ) # clear-style separators. default is opaque
-                clear='yes'
-            ;;
             * ) # the rest
-                attr+="#,$i"
+                attr+="#,${style}"
             ;;
         esac
     done
