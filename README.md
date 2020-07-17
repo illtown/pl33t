@@ -53,16 +53,16 @@ The process of configuring status lines (and pane borders) looks like this:
 ### segments
 Each segment consists of 3 variables:
   * `@pl33t-segment-<name>-content`. Defines the segment content
-  * `@pl33t-segment-<name>-separator`. Segment separator settings consisting of 2 parameters:
-    * direction. Defines left and right segment's separator directions. Direction string is searched for words 'left' and 'right' and whether they are seen at the beginning or end of the string. For example, `left` and `left-left` are equivalents.
+  * `@pl33t-segment-<name>-separator`. Segment separator settings:
+    * direction. Defines left and right segment's separator directions. Direction string is searched for words 'left' and 'right' and whether they are seen at the beginning or end of the string. For example, `left` is a shorthand for `left-left`.
     * shape. One word parameter, e.g. triangle. complete list of shapes may be found at the bottom of [variables.sh](scripts/variables.sh) (pl33t_pl_* variables).
+    * `clear`. specifies clear segment separators to be used instead of opaque (default).
   * `@pl33t-segment-<name>-style`. Corresponds to tmux style settings. This style string may include pl33t-specific attributes:
     * `tmp`. makes segment invisible if it's content is 0 or empty
-    * `clear`. specifies clear segment separators to be used instead of opaque (default).
 
 You may choose any segment name you want as long as it gets referenced under `@pl33t-*-segments` variables.
 
-There is one reserved segment name - `winstatus`, which deals with window list and has its own set of `@pl33t-window-status-*` variables.
+There is one reserved segment name - `winstatus`, which deals with window list and has its own set of `@pl33t-winstatus-*` variables.
 ### examples
 Try adding this to your `tmux.conf`:
 ```
