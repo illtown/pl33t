@@ -4,7 +4,7 @@
 
 # main starting point
 Main() {
-    #SanityCheck
+    SanityCheck
     CURRENT_DIR="$(dirname $0)"
     source "${CURRENT_DIR}/scripts/helpers.sh"
     source "${CURRENT_DIR}/scripts/variables.sh"
@@ -15,8 +15,8 @@ Main() {
 # sanity check
 SanityCheck() {
     # Tmux version check
-    if ! [[ "$(tmux -V)" =~ ^tmux\ [3-9] ]]; then
-        tmux display "$(basename $0): Tmux version 3+ needed"
+    if ! [[ "$(tmux -V)" =~ ^tmux\ (3\.[1-9]|[4-9]) ]]; then
+        tmux display "$(basename $0): Tmux version 3.1+ needed"
         exit 1
     fi
 }
@@ -70,39 +70,26 @@ PaneModding() {
 
 # status line modifications
 StatusLineModding() {
-    # track current status line
-    local line_ndx=$1
-
-    # status line template
-    local status_format=''
-    status_format+="#{T:@pl33t-status-${line_ndx}-left-format}"
-    status_format+="#{T:@pl33t-status-${line_ndx}-centre-format}"
-    status_format+="#{T:@pl33t-status-${line_ndx}-right-format}"
-    tmux set -g "status-format[${line_ndx}]" "${status_format}"
-
-    local side
+    local line_ndx=$1   # track current status line
+    local side status_format=''
     for side in 'left' 'centre' 'right'; do
-        local status_side_format=''
-        # status side format header
-        if [[ ${line_ndx} -eq 0 && ${side} =~ ^(left|right)$ ]]; then
-            status_side_format+="#[align=${side} range=${side}]"
-        else
-            status_side_format+="#[align=${side}]"
-        fi
+        # status side templates
+        local fg= bg= attr= tmp= length=
+        StyleParser @pl33t-status-${line_ndx}-${side}-style
+        status_format+="#[fg=${fg:-default}#,bg=${bg:-default}${attr:+#,${attr}}]" # style
+        status_format+="#[push-default]"
+        status_format+="#{T${length:+;${length}}:@pl33t-status-${line_ndx}-${side}-format}" # content
+        status_format+="#[pop-default]"
+        status_format+="#[norange#,default]"
 
         # status side segments builder
+        local status_side_format=''
         local segments_format=''
         SegmentBuilder @pl33t-status-${line_ndx}-${side}-segments
         status_side_format+="${segments_format}"
-
-        # status side format footer
-        if [[ ${line_ndx} -eq 0 && ${side} =~ ^(left|right)$ ]]; then
-            status_side_format+='#[norange default]'
-        else
-            status_side_format+='#[default]'
-        fi
         tmux set -g @pl33t-status-${line_ndx}-${side}-format "${status_side_format}"
     done
+    tmux set -g "status-format[${line_ndx}]" "${status_format}"
 }
 
 # segment builder
@@ -114,7 +101,7 @@ SegmentBuilder() {
             WindowStatusModding
             segments_format+='#{T:@pl33t-winstatus-format}'
         else
-            local fg= bg= attr= tmp=
+            local fg= bg= attr= tmp= length=
             StyleParser @pl33t-segment-${segment}-style
             local lsep_ndx=() rsep_ndx=() sep_shape= clear=
             SepFormatParser @pl33t-segment-${segment}-separator
@@ -139,7 +126,7 @@ SegmentBuilder() {
             [[ -n ${tmp} ]] && segments_format+="#{?#{T:@pl33t-segment-${segment}-content},"
             segments_format+="${segment_lsep_format}" # left separator
             segments_format+="#[fg=${fg:-default}#,bg=${bg:-default}${attr:+#,${attr}}]" # style
-            segments_format+="#{T:@pl33t-segment-${segment}-content}" # content
+            segments_format+="#{T${length:+;${length}}:@pl33t-segment-${segment}-content}" # content
             segments_format+="${segment_rsep_format}" # right separator
             [[ -n ${tmp} ]] && segments_format+=",}"
         fi
@@ -150,31 +137,31 @@ SegmentBuilder() {
 WindowStatusModding() {
     # window status styles builder
     for style_name in 'other' 'current' 'activity' 'bell' 'last' 'silence'; do
-        local fg= bg= attr= tmp=
+        local fg= bg= attr= tmp= length=
         StyleParser @pl33t-winstatus-${style_name}-style
         eval local winstatus_${style_name}_bg="${bg}"
-        eval local winstatus_${style_name}_attr="${attr:+#,${attr}}"
+        eval local winstatus_${style_name}_attr="${attr:+${attr}#,}"
     done
     unset style_name
 
     # normal windows separators
     local -a win_sep_formats
-    win_sep_formats[0]="#[fg=${winstatus_other_bg}#,bg=#{E:@pl33t-status-bg}${winstatus_other_attr}#,none]"
+    win_sep_formats[0]="#[${winstatus_other_attr}none#,fg=${winstatus_other_bg}#,bg=default]"
     win_sep_formats[0]+="#{?#{window_last_flag},#[fg=${winstatus_last_bg}],}"
     win_sep_formats[0]+="#{?#{window_activity_flag},#[fg=${winstatus_activity_bg}],}"
     win_sep_formats[0]+="#{?#{window_silence_flag},#[fg=${winstatus_silence_bg}],}"
     win_sep_formats[0]+="#{?#{window_bell_flag},#[fg=${winstatus_bell_bg}],}"
 
-    win_sep_formats[1]="#[fg=#{E:@pl33t-status-bg}#,bg=${winstatus_other_bg}${winstatus_other_attr}#,none]"
-    win_sep_formats[1]+="#{?#{window_last_flag},#[bg=${winstatus_last_bg}],}"
-    win_sep_formats[1]+="#{?#{window_activity_flag},#[bg=${winstatus_activity_bg}],}"
-    win_sep_formats[1]+="#{?#{window_silence_flag},#[bg=${winstatus_silence_bg}],}"
-    win_sep_formats[1]+="#{?#{window_bell_flag},#[bg=${winstatus_bell_bg}],}"
+    win_sep_formats[1]="#[${winstatus_other_attr}none#,fg=${winstatus_other_bg}#,bg=default#,reverse]"
+    win_sep_formats[1]+="#{?#{window_last_flag},#[fg=${winstatus_last_bg}],}"
+    win_sep_formats[1]+="#{?#{window_activity_flag},#[fg=${winstatus_activity_bg}],}"
+    win_sep_formats[1]+="#{?#{window_silence_flag},#[fg=${winstatus_silence_bg}],}"
+    win_sep_formats[1]+="#{?#{window_bell_flag},#[fg=${winstatus_bell_bg}],}"
 
     local lsep_ndx=() rsep_ndx=() sep_shape= clear=
     SepFormatParser @pl33t-winstatus-other-separator
-    eval win_sep_formats[2]="\${pl33t_pl_${sep_shape}_left_opaque}"
-    eval win_sep_formats[3]="\${pl33t_pl_${sep_shape}_right_opaque}"
+    eval win_sep_formats[2]="\${pl33t_pl_${sep_shape}_left_opaque}#[none]"
+    eval win_sep_formats[3]="\${pl33t_pl_${sep_shape}_right_opaque}#[none]"
 
     local lwin_lsep_format="${win_sep_formats[${lsep_ndx[0]}]}${win_sep_formats[${lsep_ndx[1]}]}"
     local lwin_rsep_format="${win_sep_formats[${rsep_ndx[0]}]}${win_sep_formats[${rsep_ndx[1]}]}"
@@ -183,27 +170,26 @@ WindowStatusModding() {
 
     # current window separators
     local -a cwin_sep_formats
-    cwin_sep_formats[0]="#[fg=${winstatus_current_bg}#,bg=#{E:@pl33t-status-bg}${winstatus_current_attr}#,none]"
+    cwin_sep_formats[0]="#[${winstatus_current_attr}none#,fg=${winstatus_current_bg}#,bg=default]"
     cwin_sep_formats[0]+="#{?#{window_activity_flag},#[fg=${winstatus_activity_bg}],}"
     cwin_sep_formats[0]+="#{?#{window_silence_flag},#[fg=${winstatus_silence_bg}],}"
     cwin_sep_formats[0]+="#{?#{window_bell_flag},#[fg=${winstatus_bell_bg}],}"
 
-    cwin_sep_formats[1]="#[fg=#{E:@pl33t-status-bg}#,bg=${winstatus_current_bg}${winstatus_current_attr}#,none]"
-    cwin_sep_formats[1]+="#{?#{window_activity_flag},#[bg=${winstatus_activity_bg}],}"
-    cwin_sep_formats[1]+="#{?#{window_silence_flag},#[bg=${winstatus_silence_bg}],}"
-    cwin_sep_formats[1]+="#{?#{window_bell_flag},#[bg=${winstatus_bell_bg}],}"
+    cwin_sep_formats[1]="#[${winstatus_current_attr}none#,fg=${winstatus_current_bg}#,bg=default#,reverse]"
+    cwin_sep_formats[1]+="#{?#{window_activity_flag},#[fg=${winstatus_activity_bg}],}"
+    cwin_sep_formats[1]+="#{?#{window_silence_flag},#[fg=${winstatus_silence_bg}],}"
+    cwin_sep_formats[1]+="#{?#{window_bell_flag},#[fg=${winstatus_bell_bg}],}"
 
     local lsep_ndx=() rsep_ndx=() sep_shape= clear=
     SepFormatParser @pl33t-winstatus-current-separator
-    eval cwin_sep_formats[2]="\${pl33t_pl_${sep_shape}_left_opaque}"
-    eval cwin_sep_formats[3]="\${pl33t_pl_${sep_shape}_right_opaque}"
+    eval cwin_sep_formats[2]="\${pl33t_pl_${sep_shape}_left_opaque}#[none]"
+    eval cwin_sep_formats[3]="\${pl33t_pl_${sep_shape}_right_opaque}#[none]"
 
     local cwin_lsep_format="${cwin_sep_formats[${lsep_ndx[0]}]}${cwin_sep_formats[${lsep_ndx[1]}]}"
     local cwin_rsep_format="${cwin_sep_formats[${rsep_ndx[0]}]}${cwin_sep_formats[${rsep_ndx[1]}]}"
 
     # window status format builder
     local winstatus_format=''
-    winstatus_format+="#[align=${side}]"
     # normal windows
     winstatus_format+="#{W:#[range=window|#{window_index}]"
     winstatus_format+="#{?#{m:*#I *A*,#{W:#I ,A }},${lwin_lsep_format},${rwin_lsep_format}}" # left separator

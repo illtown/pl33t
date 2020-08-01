@@ -16,29 +16,25 @@ GetTmuxOption() {
 # separator format parser
 SepFormatParser() {
     local format sep_formats="$(GetTmuxOption $1)"
-    local dir_format_cntr
+    local dir_fmt_ctr=0
 
     for format in ${sep_formats//,/ }; do
-        if [[ ${format} =~ ^(left|right)?(-(left|right)?)?$ ]]; then
+        if [[ ${format} =~ ^(left|right)?-?(left|right)?$ ]]; then
             case ${format} in
                 left* )
-                    lsep_ndx[${dir_format_cntr}]=0
-                    lsep_ndx[${dir_format_cntr} + 1]=2
+                    lsep_ndx+=([dir_fmt_ctr]=0 [dir_fmt_ctr + 1]=2)
                 ;;&
                 right* )
-                    lsep_ndx[${dir_format_cntr}]=1
-                    lsep_ndx[${dir_format_cntr} + 1]=3
+                    lsep_ndx+=([dir_fmt_ctr]=1 [dir_fmt_ctr + 1]=3)
                 ;;&
                 *left )
-                    rsep_ndx[${dir_format_cntr}]=1
-                    rsep_ndx[${dir_format_cntr} + 1]=2
+                    rsep_ndx+=([dir_fmt_ctr]=1 [dir_fmt_ctr + 1]=2)
                 ;;&
                 *right )
-                    rsep_ndx[${dir_format_cntr}]=0
-                    rsep_ndx[${dir_format_cntr} + 1]=3
+                    rsep_ndx+=([dir_fmt_ctr]=0 [dir_fmt_ctr + 1]=3)
                 ;;&
                 * )
-                    (( dir_format_cntr+=2 ))
+                    (( dir_fmt_ctr+=2 ))
                 ;;
             esac
         else
@@ -64,6 +60,10 @@ StyleParser() {
             ;;
             tmp ) # temporal. only show if not empty
                 tmp='yes'
+            ;;
+            length=* ) # segment content length
+                [[ ${style} =~ ^length=-?[0-9]+(/.+)?$ ]] && { eval ${style}; length="=/${length}"; }
+                [[ ${style} =~ ^length=p-?[0-9]+$ ]] && eval ${style}
             ;;
             * ) # the rest
                 attr+="#,${style}"

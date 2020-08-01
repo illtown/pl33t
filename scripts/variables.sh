@@ -38,10 +38,11 @@ tmux set -Fg message-style 'fg=black,bg=#{@pl33t-color-accent}'
 tmux set -Fg message-command-style 'fg=#{@pl33t-color-accent},bg=black,bright'
 # mode style
 tmux set -Fg mode-style 'fg=black,bg=#{@pl33t-color-accent}'
-# status line main style
-tmux set -go @pl33t-status-fg 'white'
-tmux set -go @pl33t-status-bg 'black'
-tmux set -Fg status-style 'fg=#{@pl33t-status-fg},bg=#{@pl33t-status-bg}'
+# status line styles
+tmux set -Fg status-style 'fg=white,bg=black'
+tmux set -go @pl33t-status-0-left-style 'align=left,range=left'
+tmux set -go @pl33t-status-0-centre-style 'align=centre'
+tmux set -go @pl33t-status-0-right-style 'align=right,range=right'
 
 # ---- status lines modding ----
 # ammount of pre-configured status lines: 2 through 5 or anything else for 1.
