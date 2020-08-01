@@ -33,7 +33,7 @@ Reload TMUX environment:
 To run this theme you need:
 
 * bash
-* tmux (v3+ recommended. prior versions should work too, not tested)
+* tmux >= 3.1
 * powerline enabled fonts ([nerdfonts](https://www.nerdfonts.com) recommended)
 
 ## Customization
@@ -59,6 +59,7 @@ Each segment consists of 3 variables:
     * `clear`. specifies clear segment separators to be used instead of opaque (default).
   * `@pl33t-segment-<name>-style`. Corresponds to tmux style settings. This style string may include pl33t-specific attributes:
     * `tmp`. makes segment invisible if it's content is 0 or empty
+    * `length=<len format>`. wrapper for tmux's length style specifier.
 
 You may choose any segment name you want as long as it gets referenced under `@pl33t-*-segments` variables.
 
